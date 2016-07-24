@@ -30,6 +30,7 @@ public:
 	static void	OnVehicleSpawn(WORD vehicleid);
 	static void	OnPlayerPickedUpPickup(WORD playerid, WORD pickupid);
 	static void	OnPlayerPickedUpPlayerPickup(WORD playerid, WORD pickupid);
+	static void OnClientCheckResponse(WORD playerid, BYTE type, DWORD arg, BYTE response);
 
 
 	static std::vector<AMX *>		m_vecAMX;
