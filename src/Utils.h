@@ -51,23 +51,15 @@ void LoadTickCount();
 // Just to keep compatibility with streamer... If I got used to something, I don't like to switch to new one.
 namespace Utility
 {
-	const char* GetWeaponName_(BYTE weaponid);
+	std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems);
+	const char* GetWeaponName(BYTE weaponid);
 	BYTE GetWeaponSlot(BYTE weaponid);
-	std::string convertNativeStringToString(AMX *amx, cell input);
-	void convertStringToNativeString(AMX *amx, cell output, cell size, char* string);
-	void convertStringToNativeString(AMX *amx, cell output, cell size, std::string string);
-	void storeFloatInNative(AMX *amx, cell output, float value);
-	void storeVectorInNative(AMX *amx, cell output, CVector2D &vec);
-	void storeVectorInNative(AMX *amx, cell output, CVector &vec);
-	void storeIntegerInNative(AMX *amx, cell output, int value);
-	void storeIntegerInNative(AMX *amx, cell output, DWORD value);
-	void storeIntegerInNative(AMX *amx, cell output, WORD value);
-	void storeIntegerInNative(AMX *amx, cell output, BYTE value);
+	int CFGLoad(char const * const name, char * const dest = 0, size_t dlen = 0);
 };
 
 float GetDistance3D(CVector *vecPosition, CVector *_vecPosition);
-bool IsPlayerConnectedEx(int playerid);
-char *GetPlayerName_(int playerid);
+bool IsPlayerConnected(int playerid);
+const char *GetPlayerName(int playerid, bool getForQuery = false);
 
 bool Unlock(void *address, size_t len);
 
@@ -95,4 +87,5 @@ enum
 	BS_FLOAT,
 	BS_STRING
 };
+
 #endif

@@ -40,7 +40,7 @@ CGangZonePool::CGangZonePool()
 
 CGangZonePool::~CGangZonePool()
 {
-	for (WORD i = 0; i != MAX_GANG_ZONES; i++)
+	for (WORD i = 0; i != MAX_GANG_ZONES; ++i)
 	{
 		SAFE_DELETE(pGangZone[i]);
 	}
@@ -86,10 +86,10 @@ WORD CGangZonePool::New(WORD playerid, float fMinX, float fMinY, float fMaxX, fl
 
 void CGangZonePool::Delete(WORD wZone)
 {
-	for (WORD i = 0; i != MAX_PLAYERS; i++)
+	for (WORD i = 0; i != MAX_PLAYERS; ++i)
 	{
 		// Skip not connected players
-		if (!IsPlayerConnectedEx(i)) continue;
+		if (!IsPlayerConnected(i)) continue;
 
 		HideForPlayer(i, wZone);
 	}
@@ -158,10 +158,10 @@ bool CGangZonePool::ShowForPlayer(WORD playerid, WORD wZone, DWORD dwColor, bool
 
 void CGangZonePool::ShowForAll(WORD wZone, DWORD dwColor)
 {
-	for(WORD playerid = 0; playerid != MAX_PLAYERS; playerid++)
+	for(WORD playerid = 0; playerid != MAX_PLAYERS; ++playerid)
 	{
 		// Skip not connected players
-		if(!IsPlayerConnectedEx(playerid)) continue;
+		if(!IsPlayerConnected(playerid)) continue;
 
 		WORD i = 0;
 
@@ -246,12 +246,12 @@ bool CGangZonePool::HideForPlayer(WORD playerid, WORD wZone, bool bPlayerZone, b
 
 void CGangZonePool::HideForAll(WORD wZone)
 {
-	for(WORD i = 0; i != MAX_PLAYERS; i++)
+	for(WORD i = 0; i != MAX_PLAYERS; ++i)
 	{
 		// Skip not connected players
-		if(!IsPlayerConnectedEx(i)) continue;
+		if(!IsPlayerConnected(i)) continue;
 
-		HideForPlayer(i, wZone);
+		HideForPlayer(i, wZone, false, true);
 	}
 }
 
@@ -289,10 +289,10 @@ void CGangZonePool::FlashForPlayer(WORD playerid, WORD wZone, DWORD dwColor, boo
 
 void CGangZonePool::FlashForAll(WORD wZone, DWORD dwColor)
 {
-	for(WORD i = 0; i != MAX_PLAYERS; i++)
+	for(WORD i = 0; i != MAX_PLAYERS; ++i)
 	{
 		// Skip not connected players
-		if(!IsPlayerConnectedEx(i)) continue;
+		if(!IsPlayerConnected(i)) continue;
 
 		FlashForPlayer(i, wZone, dwColor);
 	}
@@ -331,10 +331,10 @@ void CGangZonePool::StopFlashForPlayer(WORD playerid, WORD wZone, bool bPlayerZo
 
 void CGangZonePool::StopFlashForAll(WORD wZone)
 {
-	for(WORD i = 0; i != MAX_PLAYERS; i++)
+	for(WORD i = 0; i != MAX_PLAYERS; ++i)
 	{
 		// Skip not connected players
-		if(!IsPlayerConnectedEx(i)) continue;
+		if(!IsPlayerConnected(i)) continue;
 
 		StopFlashForPlayer(i, wZone);
 	}

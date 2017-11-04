@@ -35,78 +35,68 @@
 
 struct CNetGame;
 struct Packet;
-class CVehicleSpawn;
 class CGangZonePool;
 class CYSFPickupPool;
 
 #include "CSingleton.h"
-#include "Addresses.h"
+#include "CAddresses.h"
 #include "CGangZonePool.h"
 
 #include <vector>
 #include <set>
 #include <bitset>
 #include <unordered_map>
-#include <unordered_set>
 
 class CServer : public CSingleton<CServer>
 {
 	friend class CSingleton<CServer>;
 public:
-	CServer() : m_bInitialized(false)
-	{
-
-	}
+	CServer() = default;
 	~CServer();
 
-	void Initialize(eSAMPVersion version);
+	void Initialize(SAMPVersion version);
 	bool inline IsInitialized(void) { return m_bInitialized; }
+	void Process();
 
 	bool AddPlayer(int playerid);
 	bool RemovePlayer(int playerid);
-
-	void Process();
-
+ 
 	bool OnPlayerStreamIn(WORD playerid, WORD forplayerid);
 	bool OnPlayerStreamOut(WORD playerid, WORD forplayerid);
 
-	void SetGravity_(float fGravity);
-	float GetGravity_(void);
-
-	void SetWeather_(BYTE byteWeather);
-	BYTE GetWeather_(void);
-
-	eSAMPVersion GetVersion() { return m_Version; }
+	SAMPVersion const &GetVersion() { return m_Version; }
 	
 	void AllowNickNameCharacter(char character, bool enable);
 	bool IsNickNameCharacterAllowed(char character);
 	bool IsValidNick(char *szName);
 
-	inline void BanIP(const char* ip)
-	{
-		bannedIPs.insert(ip);
-	}
+	// RakServer::IsBanned fix
+	inline void BanIP(const char* ip) { m_BannedIPs.insert(ip); } 
+	inline void UnbanIP(const char* ip) { m_BannedIPs.erase(ip); }
+	inline void ClearBans() { m_BannedIPs.clear(); }
+	inline bool IsBanned(char* ip) { return m_BannedIPs.find(ip) != m_BannedIPs.end(); }
 
-	inline void UnbanIP(const char* ip)
-	{
-		bannedIPs.erase(ip);
-	}
+	// Toggling rcon commands
+	bool ChangeRCONCommandName(std::string const &strCmd, std::string const &strNewCmd);
+	bool GetRCONCommandName(std::string const &strCmd, std::string &strNewCmd);
 
-	inline void ClearBans()
-	{
-		bannedIPs.clear();
-	}
-
-	inline bool IsBanned(char* ip)
-	{
-		return bannedIPs.find(ip) != bannedIPs.end();
-	}
+	// Broadcasting console messages to players
+	void AddConsolePlayer(WORD playerid, DWORD color);
+	void RemoveConsolePlayer(WORD playerid); 
+	bool IsConsolePlayer(WORD playerid, DWORD &color);
+	void ProcessConsoleMessages(const char* str);
 
 	void inline SetTickRate(int rate) { m_iTickRate = rate; }
 	int inline GetTickRate(void) { return m_iTickRate; }
 
 	void inline EnableNightVisionFix(bool enable) { m_bNightVisionFix = enable; }
 	bool inline IsNightVisionFixEnabled(void) { return m_bNightVisionFix; }
+	
+	void inline ToggleOnServerMessage(bool toggle) { m_bOnServerMessage = toggle; }
+	bool inline IsOnServerMessageEnabled(void) { return m_bOnServerMessage; }
+
+	void SetExclusiveBroadcast(bool toggle);
+	bool GetExclusiveBroadcast(void);
 
 	void SetExtendedNetStatsEnabled(bool enable);
 	bool IsExtendedNetStatsEnabled(void);
@@ -114,9 +104,15 @@ public:
 	void inline SetAFKAccuracy(DWORD time_ms) { m_dwAFKAccuracy = time_ms; }
 	DWORD inline GetAFKAccuracy(void) { return m_dwAFKAccuracy; }
 
-	WORD GetMaxPlayers_();
+	WORD GetMaxPlayers();
 	WORD GetPlayerCount();
 	WORD GetNPCCount();
+
+	void RebuildSyncData(RakNet::BitStream *bsSync, WORD toplayerid);
+	bool RebuildRPCData(BYTE uniqueID, RakNet::BitStream *bsSync, WORD playerid);
+
+	char* GetNPCCommandLine(WORD npcid);
+	int FindNPCProcessID(WORD npcid);
 
 	CGangZonePool *pGangZonePool;
 	CYSFPickupPool *pPickupPool;
@@ -125,17 +121,45 @@ public:
 	std::bitset<MAX_VEHICLES> bChangedVehicleColor;
 	WORD COBJECT_AttachedObjectPlayer[MAX_OBJECTS];
 
+	bool m_bPickupProtection : 1;
+	bool m_bDeathProtection : 1;
+	bool m_bDialogProtection : 1;
+	bool m_bUseCustomSpawn : 1;
+	bool m_bAllowRemoteRCONWithBannedIPs : 1;
+	bool m_bIncreaseRakNetInternalPlayers : 1;
+	int m_iRakNetInternalSleepTime;
+	int m_iAttachObjectDelay;
+	bool m_bStorePlayerObjectsMaterial : 1;
+
+	struct SysExec_t
+	{
+		std::string output;
+		int retval;
+		int index;
+		bool success;
+	};
+	std::queue<SysExec_t> m_SysExecQueue;
+	std::mutex m_SysExecMutex;
+
 private:
-	eSAMPVersion m_Version;
+	void LoadConfig();
+	void ProcessSysExec();
+
+	SAMPVersion m_Version;
 	int m_iTicks;
 	int m_iTickRate;
 	bool m_bInitialized = 0;
 	bool m_bNightVisionFix : 1;
-	bool m_bExtendedNetStats : 1;
+	bool m_bOnServerMessage : 1;
+	
+	bool m_bExclusiveBroadcast = 0;
+
 	DWORD m_dwAFKAccuracy;
 
-	std::unordered_set<std::string> bannedIPs;
-	std::unordered_set <char> m_vecValidNameCharacters;
+	std::set<std::string> m_BannedIPs;
+	std::vector<std::string> m_RCONCommands;
+	std::unordered_map<WORD, DWORD> m_ConsoleMessagePlayers;
+	std::set<char> m_vecValidNameCharacters;
 };
 
 #endif

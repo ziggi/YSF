@@ -33,26 +33,47 @@
 #ifndef YSF_SCRIPTING_H
 #define YSF_SCRIPTING_H
 
-#include <sampgdk/sampgdk.h>
+#include <sdk/amx/amx.h>
 #include "main.h"
 
 typedef cell AMX_NATIVE_CALL(*AMX_Function_t)(AMX *amx, cell *params);
 
 #define AMX_DECLARE_NATIVE(name) \
-	static cell AMX_NATIVE_CALL name(AMX* amx, cell* params)
+	cell AMX_NATIVE_CALL name(AMX* amx, cell* params)
 
 #define AMX_DEFINE_NATIVE(name) \
 	{#name, Natives::name},
 
-#define CHECK_PARAMS(m, n) \
-	if (params[0] != (m * 4)) \
-	{ \
-		logprintf("YSF: %s: Expecting %d parameter(s), but found %d", n, m, params[0] / sizeof(cell)); \
-		return 0; \
-	}
+#define CHECK_PARAMS(m, flag) \
+	if(CScriptParams::Get()->Setup(m, __FUNCTION__, CScriptParams::Flags::flag, amx, params)) return CScriptParams::Get()->HandleError()
+	
+struct stRedirectedNatives
+{
+	const char _FAR *name PACKED;
+	AMX_NATIVE *originalfunc PACKED;
+	AMX_NATIVE func PACKED;
+};
 
 namespace Natives
 {
+	extern AMX_NATIVE ORIGINAL_AttachObjectToPlayer;
+	extern AMX_NATIVE ORIGINAL_SetPlayerWeather;
+	extern AMX_NATIVE ORIGINAL_SetPlayerWorldBounds;
+	extern AMX_NATIVE ORIGINAL_DestroyObject;
+	extern AMX_NATIVE ORIGINAL_DestroyPlayerObject;
+	extern AMX_NATIVE ORIGINAL_TogglePlayerControllable;
+	extern AMX_NATIVE ORIGINAL_ChangeVehicleColor;
+	extern AMX_NATIVE ORIGINAL_DestroyVehicle;
+	extern AMX_NATIVE ORIGINAL_ShowPlayerDialog;
+	extern AMX_NATIVE ORIGINAL_SetPlayerObjectMaterial;
+	extern AMX_NATIVE ORIGINAL_SetPlayerObjectMaterialText;
+	extern AMX_NATIVE ORIGINAL_SetPlayerTeam;
+	extern AMX_NATIVE ORIGINAL_SetPlayerSkin;
+	extern AMX_NATIVE ORIGINAL_SetPlayerName;
+	extern AMX_NATIVE ORIGINAL_SetPlayerFightingStyle;
+
+	AMX_DECLARE_NATIVE(execute); // R18
+
 	AMX_DECLARE_NATIVE(ffind);
 	AMX_DECLARE_NATIVE(frename);
 
@@ -64,6 +85,8 @@ namespace Natives
 	AMX_DECLARE_NATIVE(GetModeRestartTime);
 	AMX_DECLARE_NATIVE(SetMaxPlayers); // R8
 	AMX_DECLARE_NATIVE(SetMaxNPCs); // R8
+	AMX_DECLARE_NATIVE(GetSyncBounds); // R19
+	AMX_DECLARE_NATIVE(SetSyncBounds); // R19
 
 	AMX_DECLARE_NATIVE(SetPlayerAdmin);
 	AMX_DECLARE_NATIVE(LoadFilterScript);
@@ -79,6 +102,12 @@ namespace Natives
 	AMX_DECLARE_NATIVE(GetServerRuleFlags); // R12
 
 	AMX_DECLARE_NATIVE(GetServerSettings);
+	AMX_DECLARE_NATIVE(GetNPCCommandLine); // R19
+
+	AMX_DECLARE_NATIVE(ChangeRCONCommandName); // R19
+	AMX_DECLARE_NATIVE(GetRCONCommandName); // R19
+
+	AMX_DECLARE_NATIVE(CallFunctionInScript); // R19
 
 	AMX_DECLARE_NATIVE(IsValidNickName);	// R8
 	AMX_DECLARE_NATIVE(AllowNickNameCharacter); // R7
@@ -131,7 +160,7 @@ namespace Natives
 	AMX_DECLARE_NATIVE(IsPlayerCameraTargetEnabled); // R13
 	AMX_DECLARE_NATIVE(SetPlayerDisabledKeysSync); // R16
 	AMX_DECLARE_NATIVE(GetPlayerDisabledKeysSync); // R16
-	
+
 	AMX_DECLARE_NATIVE(GetPlayerSirenState);
 	AMX_DECLARE_NATIVE(GetPlayerLandingGearState);
 	AMX_DECLARE_NATIVE(GetPlayerHydraReactorAngle);
@@ -144,7 +173,6 @@ namespace Natives
 	AMX_DECLARE_NATIVE(GetPlayerSpectateType); // R8
 	AMX_DECLARE_NATIVE(GetPlayerLastSyncedVehicleID); // R10
 	AMX_DECLARE_NATIVE(GetPlayerLastSyncedTrailerID); // R10
-	AMX_DECLARE_NATIVE(GetPlayerFPS); // R10
 
 	AMX_DECLARE_NATIVE(GetActorSpawnInfo); // R13
 	AMX_DECLARE_NATIVE(GetActorSkin); // R13
@@ -153,8 +181,8 @@ namespace Natives
 	AMX_DECLARE_NATIVE(TogglePlayerScoresPingsUpdate); // R8
 	AMX_DECLARE_NATIVE(TogglePlayerFakePing); // R8
 	AMX_DECLARE_NATIVE(SetPlayerFakePing); // R8
-	AMX_DECLARE_NATIVE(TogglePlayerInServerQuery); // R11
-	AMX_DECLARE_NATIVE(IsPlayerToggledInServerQuery); // R11
+	AMX_DECLARE_NATIVE(SetPlayerNameInServerQuery); // R11
+	AMX_DECLARE_NATIVE(GetPlayerNameInServerQuery); // R11
 
 	AMX_DECLARE_NATIVE(IsPlayerPaused);
 	AMX_DECLARE_NATIVE(GetPlayerPausedTime);
@@ -203,6 +231,10 @@ namespace Natives
 	AMX_DECLARE_NATIVE(SetVehicleBeenOccupied); // R9
 	AMX_DECLARE_NATIVE(IsVehicleOccupied); // R9
 	AMX_DECLARE_NATIVE(IsVehicleDead); // R9
+	AMX_DECLARE_NATIVE(SetVehicleParamsSirenState); // R19
+	AMX_DECLARE_NATIVE(ToggleVehicleSirenEnabled); // R19
+	AMX_DECLARE_NATIVE(IsVehicleSirenEnabled); // R19
+	AMX_DECLARE_NATIVE(GetVehicleMatrix); // R19
 	AMX_DECLARE_NATIVE(SetVehicleSpawnInfo); // R12
 	AMX_DECLARE_NATIVE(GetVehicleModelCount); // R17
 	AMX_DECLARE_NATIVE(GetVehicleModelsUsed); // R17
@@ -249,6 +281,7 @@ namespace Natives
 	AMX_DECLARE_NATIVE(TextDrawGetPreviewModel);
 	AMX_DECLARE_NATIVE(TextDrawGetPreviewRot);
 	AMX_DECLARE_NATIVE(TextDrawGetPreviewVehCol);
+	AMX_DECLARE_NATIVE(TextDrawSetStringForPlayer); // R19
 
 	AMX_DECLARE_NATIVE(IsValidPlayerTextDraw);
 	AMX_DECLARE_NATIVE(IsPlayerTextDrawVisible);
@@ -328,12 +361,20 @@ namespace Natives
 	AMX_DECLARE_NATIVE(YSF_GetTickRate);
 	AMX_DECLARE_NATIVE(YSF_EnableNightVisionFix);
 	AMX_DECLARE_NATIVE(YSF_IsNightVisionFixEnabled);
+	AMX_DECLARE_NATIVE(YSF_ToggleOnServerMessage);
+	AMX_DECLARE_NATIVE(YSF_IsOnServerMessageEnabled);
 	AMX_DECLARE_NATIVE(YSF_SetExtendedNetStatsEnabled);
 	AMX_DECLARE_NATIVE(YSF_IsExtendedNetStatsEnabled);
 	AMX_DECLARE_NATIVE(YSF_SetAFKAccuracy);
 	AMX_DECLARE_NATIVE(YSF_GetAFKAccuracy);
-	
+	AMX_DECLARE_NATIVE(EnableConsoleMSGsForPlayer);
+	AMX_DECLARE_NATIVE(DisableConsoleMSGsForPlayer);
+	AMX_DECLARE_NATIVE(HasPlayerConsoleMessages);
+
 	AMX_DECLARE_NATIVE(AttachPlayerObjectToObject);
+
+	AMX_DECLARE_NATIVE(SetExclusiveBroadcast);
+	AMX_DECLARE_NATIVE(BroadcastToPlayer);
 
 	AMX_DECLARE_NATIVE(SetRecordingDirectory);
 	AMX_DECLARE_NATIVE(GetRecordingDirectory);
@@ -354,9 +395,7 @@ namespace Natives
 
 	AMX_DECLARE_NATIVE(YSF_AttachObjectToPlayer);
 	AMX_DECLARE_NATIVE(YSF_AttachPlayerObjectToPlayer);
-	AMX_DECLARE_NATIVE(YSF_SetGravity);
 	AMX_DECLARE_NATIVE(YSF_GetGravity);
-	AMX_DECLARE_NATIVE(YSF_SetWeather);
 	AMX_DECLARE_NATIVE(YSF_SetPlayerWeather);
 	AMX_DECLARE_NATIVE(YSF_SetPlayerWorldBounds);
 	AMX_DECLARE_NATIVE(YSF_DestroyObject);
@@ -364,6 +403,9 @@ namespace Natives
 	AMX_DECLARE_NATIVE(YSF_TogglePlayerControllable);
 	AMX_DECLARE_NATIVE(YSF_ChangeVehicleColor);
 	AMX_DECLARE_NATIVE(YSF_DestroyVehicle);
+	AMX_DECLARE_NATIVE(YSF_ShowPlayerDialog);
+	AMX_DECLARE_NATIVE(YSF_SetPlayerObjectMaterial);
+	AMX_DECLARE_NATIVE(YSF_SetPlayerObjectMaterialText);
 	
 	AMX_DECLARE_NATIVE(YSF_SetPlayerTeam);
 	AMX_DECLARE_NATIVE(YSF_SetPlayerSkin);
@@ -387,10 +429,10 @@ namespace Natives
 	AMX_DECLARE_NATIVE(SetPickupStreamingEnabled);
 #endif
 	AMX_DECLARE_NATIVE(FIXED_GetWeaponName);
-	AMX_DECLARE_NATIVE(FIXED_IsPlayerConnectedEx);
+	AMX_DECLARE_NATIVE(FIXED_IsPlayerConnected);
 };
 
-int InitScripting(AMX *amx);
+int InitNatives(AMX *amx);
 
-extern AMX_NATIVE_INFO RedirectedNatives[];
+extern stRedirectedNatives redirected_native_list[];
 #endif

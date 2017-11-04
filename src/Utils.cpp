@@ -63,7 +63,7 @@ float GetDistance3D(CVector *vecPosition, CVector *_vecPosition)
 	return ((float)sqrt(fSX + fSY + fSZ));	
 }
 
-bool IsPlayerConnectedEx(int playerid)
+bool IsPlayerConnected(int playerid)
 {
 	if (playerid < 0 || playerid >= MAX_PLAYERS)
 		return false;
@@ -71,7 +71,22 @@ bool IsPlayerConnectedEx(int playerid)
 	return pPlayerData[playerid] != NULL && pNetGame->pPlayerPool->pPlayer != NULL;
 }
 
-const char* Utility::GetWeaponName_(BYTE weaponid)
+std::vector<std::string> &Utility::split(const std::string &s, char delim, std::vector<std::string> &elems) 
+{
+	std::stringstream ss(s);
+	std::string item;
+	while (std::getline(ss, item, delim)) 
+	{
+		if (item.length() > 0) 
+		{
+			elems.push_back(item);
+		}
+	}
+	return elems;
+}
+
+
+const char* Utility::GetWeaponName(BYTE weaponid)
 {
 	switch (weaponid)
 	{
@@ -268,88 +283,76 @@ BYTE Utility::GetWeaponSlot(BYTE weaponid)
 	return result;
 }
 
-std::string Utility::convertNativeStringToString(AMX *amx, cell input)
+// Load an entry from server.cfg - Y_Less
+int Utility::CFGLoad(char const * const name, char * const dest, size_t dlen)
 {
-	char *string = NULL;
-	amx_StrParam(amx, input, string);
-	return string ? string : "";
+	FILE * fileConfig = fopen("plugins/YSF.cfg", "r");
+	//logprintf("2");
+
+	int
+		ret = 1,
+		len = strlen(name);
+	//logprintf("3");
+
+	if (fileConfig)
+	{
+		//logprintf("4");
+
+		char line[256];
+		while (!feof(fileConfig))
+		{
+			//logprintf("5");
+
+			if (!fgets(line, 256, fileConfig))
+			{
+				goto CFGLoad_close;
+			}
+			//logprintf("6");
+
+			// Does the line START with this text?  Anything other than the
+			// first character fails.
+			if (!strncmp(line, name, len) && line[len] <= ' ')
+			{
+				//logprintf("7");
+
+				while (line[++len] <= ' ')
+				{
+					if (line[len] == '\0') goto CFGLoad_close;
+				}
+				//logprintf("8");
+
+				// Skipped leading spaces, save the value.
+				if (dest) strncpy(dest, line + len, dlen);
+				ret = atoi(line + len);
+				goto CFGLoad_close;
+			}
+		}
+	CFGLoad_close:
+		//logprintf("9");
+
+		// Yes, I used a label!  I needed to escape from a double loop.
+		fclose(fileConfig);
+		//logprintf("10");
+
+	}
+	//logprintf("11");
+
+	return ret;
 }
 
-void Utility::convertStringToNativeString(AMX *amx, cell output, cell size, char* string)
+const char *GetPlayerName(int playerid, bool getForQuery)
 {
-	cell *address = NULL;
-	amx_GetAddr(amx, output, &address);
-	amx_SetString(address, string, 0, 0, static_cast<size_t>(size));
-}
+	if (!IsPlayerConnected(playerid)) return NULL;
 
-void Utility::convertStringToNativeString(AMX *amx, cell output, cell size, std::string string)
-{
-	cell *address = NULL;
-	amx_GetAddr(amx, output, &address);
-	amx_SetString(address, string.c_str(), 0, 0, static_cast<size_t>(size));
-}
-
-void Utility::storeFloatInNative(AMX *amx, cell output, float value)
-{
-	cell *address;
-	amx_GetAddr(amx, output, &address);
-	*address = amx_ftoc(value);
-}
-
-void Utility::storeVectorInNative(AMX *amx, cell output, CVector2D &vec)
-{
-	cell *address;
-	amx_GetAddr(amx, output, &address);
-	*address = amx_ftoc(vec.fX);
-	amx_GetAddr(amx, output - 4, &address);
-	*address = amx_ftoc(vec.fY);
-}
-
-void Utility::storeVectorInNative(AMX *amx, cell output, CVector &vec)
-{
-	cell *address;
-	amx_GetAddr(amx, output, &address);
-	*address = amx_ftoc(vec.fX);
-	amx_GetAddr(amx, output -4, &address);
-	*address = amx_ftoc(vec.fY);
-	amx_GetAddr(amx, output - 8, &address);
-	*address = amx_ftoc(vec.fZ);
-}
-
-void Utility::storeIntegerInNative(AMX *amx, cell output, int value)
-{
-	cell *address;
-	amx_GetAddr(amx, output, &address);
-	*address = value;
-}
-
-void Utility::storeIntegerInNative(AMX *amx, cell output, DWORD value)
-{
-	cell *address;
-	amx_GetAddr(amx, output, &address);
-	*address = static_cast<cell>(value);
-}
-
-void Utility::storeIntegerInNative(AMX *amx, cell output, WORD value)
-{
-	cell *address;
-	amx_GetAddr(amx, output, &address);
-	*address = static_cast<cell>(value);
-}
-
-void Utility::storeIntegerInNative(AMX *amx, cell output, BYTE value)
-{
-	cell *address;
-	amx_GetAddr(amx, output, &address);
-	*address = static_cast<cell>(value);
-}
-
-char *GetPlayerName_(int playerid)
-{
-	if (!IsPlayerConnectedEx(playerid)) return NULL;
-
-	// Get the player name pointer from memory.
-	return 25 * playerid + (char*)pNetGame->pPlayerPool + 0x2693C;
+	if (getForQuery)
+	{
+		return pPlayerData[playerid]->strNameInQuery.c_str();
+	}
+	else
+	{
+		// Get the player name pointer from memory.
+		return (MAX_PLAYER_NAME + 1) * playerid + (char*)pNetGame->pPlayerPool + 0x2693C;
+	}
 }
 
 // Y_Less - original YSF
@@ -437,15 +440,15 @@ bool IsPlayerUpdatePacket(BYTE packetId)
 {
 	switch (packetId)
 	{
-	case ID_PLAYER_SYNC:
-	case ID_VEHICLE_SYNC:
-	case ID_PASSENGER_SYNC:
-	case ID_SPECTATOR_SYNC:
-	case ID_AIM_SYNC:
-	case ID_TRAILER_SYNC:
-		return true;
-	default:
-		return false;
+		case ID_PLAYER_SYNC:
+		case ID_VEHICLE_SYNC:
+		case ID_PASSENGER_SYNC:
+		case ID_SPECTATOR_SYNC:
+		case ID_AIM_SYNC:
+		case ID_TRAILER_SYNC:
+			return true;
+		default:
+			return false;
 	}
 	return false;
 }

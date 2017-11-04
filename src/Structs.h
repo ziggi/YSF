@@ -33,20 +33,165 @@
 #ifndef YSF_STRUCTS_H
 #define YSF_STRUCTS_H
 
-#include "CServer.h"
 #include "CVector.h"
 #include "CVector2D.h"
-#include "CGangZonePool.h"
-#include "CPickupPool.h"
 #include <map>
 
 #include <raknet/BitStream.h>
-#include <sampgdk/sampgdk.h>
+#include <raknet/NetworkTypes.h>
+#include <sdk/amx/amx.h>
+
+#if !defined PAD
+	#define PAD(a, b) char a[b]
+#endif
+
+typedef unsigned long       DWORD;
+typedef int                 BOOL;
+typedef unsigned char       BYTE;
+typedef unsigned short      WORD;
+typedef float               FLOAT;
 
 /* -------------------------------------------------------- */
 
-// Defines
-#define	MAX_ATTACHED_OBJECTS		10
+// Defines from SAMPGDK
+#define MAX_PLAYER_NAME (24)
+#define MAX_CLIENT_MESSAGE (144)
+#define MAX_PLAYERS (1000)
+#define MAX_VEHICLES (2000)
+#define MAX_ACTORS (1000)
+#define INVALID_PLAYER_ID (0xFFFF)
+#define INVALID_VEHICLE_ID (0xFFFF)
+#define INVALID_ACTOR_ID (0xFFFF)
+#define NO_TEAM (255)
+#define MAX_OBJECTS (1000)
+#define INVALID_OBJECT_ID (0xFFFF)
+#define MAX_GANG_ZONES (1024)
+#define MAX_TEXT_DRAWS (2048)
+#define MAX_PLAYER_TEXT_DRAWS (256)
+#define MAX_MENUS (128)
+#define MAX_3DTEXT_GLOBAL (1024)
+#define MAX_3DTEXT_PLAYER (1024)
+#define MAX_PICKUPS (4096)
+#define INVALID_MENU (0xFF)
+#define INVALID_TEXT_DRAW (0xFFFF)
+#define INVALID_GANG_ZONE (-1)
+#define INVALID_3DTEXT_ID (0xFFFF)
+#define SERVER_VARTYPE_NONE (0)
+#define SERVER_VARTYPE_INT (1)
+#define SERVER_VARTYPE_STRING (2)
+#define SERVER_VARTYPE_FLOAT (3)
+#define TEXT_DRAW_FONT_SPRITE_DRAW (4)
+#define TEXT_DRAW_FONT_MODEL_PREVIEW (5)
+#define DIALOG_STYLE_MSGBOX (0)
+#define DIALOG_STYLE_INPUT (1)
+#define DIALOG_STYLE_LIST (2)
+#define DIALOG_STYLE_PASSWORD (3)
+#define DIALOG_STYLE_TABLIST (4)
+#define DIALOG_STYLE_TABLIST_HEADERS (5)
+#define PLAYER_STATE_NONE (0)
+#define PLAYER_STATE_ONFOOT (1)
+#define PLAYER_STATE_DRIVER (2)
+#define PLAYER_STATE_PASSENGER (3)
+#define PLAYER_STATE_EXIT_VEHICLE (4)
+#define PLAYER_STATE_ENTER_VEHICLE_DRIVER (5)
+#define PLAYER_STATE_ENTER_VEHICLE_PASSENGER (6)
+#define PLAYER_STATE_WASTED (7)
+#define PLAYER_STATE_SPAWNED (8)
+#define PLAYER_STATE_SPECTATING (9)
+#define PLAYER_MARKERS_MODE_OFF (0)
+#define PLAYER_MARKERS_MODE_GLOBAL (1)
+#define PLAYER_MARKERS_MODE_STREAMED (2)
+#define WEAPON_BRASSKNUCKLE (1)
+#define WEAPON_GOLFCLUB (2)
+#define WEAPON_NITESTICK (3)
+#define WEAPON_KNIFE (4)
+#define WEAPON_BAT (5)
+#define WEAPON_SHOVEL (6)
+#define WEAPON_POOLSTICK (7)
+#define WEAPON_KATANA (8)
+#define WEAPON_CHAINSAW (9)
+#define WEAPON_DILDO (10)
+#define WEAPON_DILDO2 (11)
+#define WEAPON_VIBRATOR (12)
+#define WEAPON_VIBRATOR2 (13)
+#define WEAPON_FLOWER (14)
+#define WEAPON_CANE (15)
+#define WEAPON_GRENADE (16)
+#define WEAPON_TEARGAS (17)
+#define WEAPON_MOLTOV (18)
+#define WEAPON_COLT45 (22)
+#define WEAPON_SILENCED (23)
+#define WEAPON_DEAGLE (24)
+#define WEAPON_SHOTGUN (25)
+#define WEAPON_SAWEDOFF (26)
+#define WEAPON_SHOTGSPA (27)
+#define WEAPON_UZI (28)
+#define WEAPON_MP5 (29)
+#define WEAPON_AK47 (30)
+#define WEAPON_M4 (31)
+#define WEAPON_TEC9 (32)
+#define WEAPON_RIFLE (33)
+#define WEAPON_SNIPER (34)
+#define WEAPON_ROCKETLAUNCHER (35)
+#define WEAPON_HEATSEEKER (36)
+#define WEAPON_FLAMETHROWER (37)
+#define WEAPON_MINIGUN (38)
+#define WEAPON_SATCHEL (39)
+#define WEAPON_BOMB (40)
+#define WEAPON_SPRAYCAN (41)
+#define WEAPON_FIREEXTINGUISHER (42)
+#define WEAPON_CAMERA (43)
+#define WEAPON_NIGHTVISION (44)
+#define WEAPON_INFRARED (45)
+#define WEAPON_PARACHUTE (46)
+#define WEAPON_VEHICLE (49)
+#define WEAPON_DROWN (53)
+#define WEAPON_COLLISION (54)
+#define KEY_ACTION (1)
+#define KEY_CROUCH (2)
+#define KEY_FIRE (4)
+#define KEY_SPRINT (8)
+#define KEY_SECONDARY_ATTACK (16)
+#define KEY_JUMP (32)
+#define KEY_LOOK_RIGHT (64)
+#define KEY_HANDBRAKE (128)
+#define KEY_LOOK_LEFT (256)
+#define KEY_SUBMISSION (512)
+#define KEY_LOOK_BEHIND (512)
+#define KEY_WALK (1024)
+#define KEY_ANALOG_UP (2048)
+#define KEY_ANALOG_DOWN (4096)
+#define KEY_ANALOG_LEFT (8192)
+#define KEY_ANALOG_RIGHT (16384)
+#define KEY_YES (65536)
+#define KEY_NO (131072)
+#define KEY_CTRL_BACK (262144)
+#define KEY_UP (-128)
+#define KEY_DOWN (128)
+#define KEY_LEFT (-128)
+#define KEY_RIGHT (128)
+#define BODY_PART_TORSO (3)
+#define BODY_PART_GROIN (4)
+#define BODY_PART_LEFT_ARM (5)
+#define BODY_PART_RIGHT_ARM (6)
+#define BODY_PART_LEFT_LEG (7)
+#define BODY_PART_RIGHT_LEG (8)
+#define BODY_PART_HEAD (9)
+#define CLICK_SOURCE_SCOREBOARD (0)
+#define EDIT_RESPONSE_CANCEL (0)
+#define EDIT_RESPONSE_FINAL (1)
+#define EDIT_RESPONSE_UPDATE (2)
+#define SELECT_OBJECT_GLOBAL_OBJECT (1)
+#define SELECT_OBJECT_PLAYER_OBJECT (2)
+#define BULLET_HIT_TYPE_NONE (0)
+#define BULLET_HIT_TYPE_PLAYER (1)
+#define BULLET_HIT_TYPE_VEHICLE (2)
+#define BULLET_HIT_TYPE_OBJECT (3)
+#define BULLET_HIT_TYPE_PLAYER_OBJECT (4)
+
+// Additional Defines
+#define MAX_OBJECT_MATERIAL			16
+#define MAX_PLAYER_ATTACHED_OBJECTS 10
 #define	MAX_FILTER_SCRIPTS			16
 
 #define MAX_PVARS					800
@@ -71,6 +216,51 @@ enum CON_VARTYPE { CON_VARTYPE_FLOAT, CON_VARTYPE_INT, CON_VARTYPE_BOOL, CON_VAR
 typedef void(*VARCHANGEFUNC)();
 
 /* -------------------------------------------------------- */
+
+// RakNet Remote system
+struct PingAndClockDifferential
+{
+	unsigned short pingTime;
+	unsigned int clockDifferential;
+};
+
+struct RemoteSystemStruct
+{
+	bool isActive;
+	PlayerID playerId;  // The remote system associated with this reliability layer
+	PlayerID myExternalPlayerId;  // Your own IP, as reported by the remote system
+	BYTE gapD[1895];
+	DWORD dword774;
+	WORD word778;
+	BYTE gap77A[2];
+	DWORD dword77C;
+	DWORD dword780;
+	BYTE gap784[276];
+	DWORD dword898;
+	BYTE gap89C[16];
+	BYTE byte8AC;
+	BYTE gap8AD[1023];
+	unsigned int connectionTime;
+	enum ConnectMode
+	{
+		NO_ACTION,
+		DISCONNECT_ASAP,
+		DISCONNECT_ASAP_SILENTLY,
+		DISCONNECT_ON_NO_ACK,
+		REQUESTED_CONNECTION,
+		HANDLING_CONNECTION_REQUEST,
+		UNVERIFIED_SENDER,
+		SET_ENCRYPTION_ON_MULTIPLE_16_BYTE_PACKET,
+		CONNECTED
+	} connectMode;
+	BYTE byteAuthTableIndex; // https://github.com/kurta999/YSF/pull/64
+	BYTE byteAuthType;
+	BYTE byteIsLogon;
+};
+
+static_assert(sizeof(RemoteSystemStruct) == 3255, "Invalid RemoteSystemStruct size");
+
+/* -------------------------------------------------------- */
 typedef struct _MATRIX4X4 
 {
 	CVector right;
@@ -82,6 +272,7 @@ typedef struct _MATRIX4X4
 	CVector pos;
 	float  pad_p;
 } MATRIX4X4, *PMATRIX4X4;
+static_assert(sizeof(_MATRIX4X4) == 64, "Invalid _MATRIX4X4 size");
 
 struct ConsoleVariable_s
 {
@@ -90,18 +281,15 @@ struct ConsoleVariable_s
 	void*			VarPtr;
 	VARCHANGEFUNC	VarChangeFunc;
 };
+static_assert(sizeof(ConsoleVariable_s) == 16, "Invalid ConsoleVariable_s size");
 
-struct C3DText  // size 0x21
+struct ConsoleCommand_s
 {
-	char*			szText;                                     // + 0x00
-    DWORD			dwColor;                         // + 0x04
-	CVector			vecPos;
-	float			fDrawDistance;                     // + 0x14
-    bool			bLineOfSight;            // + 0x18
-    int				iWorld;                  // + 0x19
-    WORD			wAttachedToPlayerID;    // + 0x1D
-	WORD			wAttachedToVehicleID;   // + 0x1F
+	char			szName[255];
+	DWORD			dwFlags;
+	void			(*fptrFunc)();
 };
+static_assert(sizeof(ConsoleCommand_s) == 263, "Invalid ConsoleCommand_s size");
 
 /* -------------------------------------------------------- */
 // CPlayer
@@ -116,19 +304,15 @@ struct CAimSyncData
 	float			fZAim;					// 25 - 29
 	BYTE			byteCameraZoom : 6;		// 29
 	BYTE			byteWeaponState  : 2;	// 29
-	BYTE			unk;					// 30 - 31
-	WORD			wCameraObject;			// 31 - 33
-	WORD			wCameraVehicle;			// 33 - 35
-	WORD			wCameraPlayer;			// 35 - 37
-	WORD			wCameraActor;			// 37 - 39
-	// Size = 39
+	BYTE			byteAspectRatio;					// 30 - 31
 };
+static_assert(sizeof(CAimSyncData) == 31, "Invalid CAimSyncData size");
 
 struct CVehicleSyncData
 {
 	WORD			wVehicleId;				// 0x001F - 0x0021
-	WORD			wLRAnalog;				// 0x0023 - 0x0025
-	WORD			wUDAnalog;				// 0x0021 - 0x0023
+	WORD			wLRAnalog;				// 0x0021 - 0x0023
+	WORD			wUDAnalog;				// 0x0023 - 0x0025
 	WORD			wKeys;					// 0x0025 - 0x0027
 	float			fQuaternion[4];			// 0x002B - 0x0037
 	CVector			vecPosition;			// 0x0037 - 0x0043
@@ -146,8 +330,8 @@ struct CVehicleSyncData
             WORD			wHydraReactorAngle[2];                       
             float           fTrainSpeed;
     };
-	// Size = 63
 };
+static_assert(sizeof(CVehicleSyncData) == 63, "Invalid CVehicleSyncData size");
 
 struct CPassengerSyncData
 {
@@ -157,17 +341,17 @@ struct CPassengerSyncData
 	BYTE			bytePlayerWeapon;		// 0x0061 - 0x0062
 	BYTE			bytePlayerHealth;		// 0x0062 - 0x0063
 	BYTE			bytePlayerArmour;		// 0x0063 - 0x0064
-	WORD			wLRAnalog;				// 0x0066 - 0x0068
-	WORD			wUDAnalog;				// 0x0064 - 0x0066
+	WORD			wLRAnalog;				// 0x0064 - 0x0066
+	WORD			wUDAnalog;				// 0x0066 - 0x0068
 	WORD			wKeys;					// 0x0068 - 0x006A
 	CVector			vecPosition;			// 0x006A - 0x0076
-	// Size = 24
 };
+static_assert(sizeof(CPassengerSyncData) == 24, "Invalid CPassengerSyncData size");
 
 struct CSyncData
 {
-	WORD			wLRAnalog;				// 0x0078 - 0x007A
-	WORD			wUDAnalog;				// 0x0076 - 0x0078
+	WORD			wLRAnalog;				// 0x0076 - 0x0078
+	WORD			wUDAnalog;				// 0x0078 - 0x007A
 	WORD			wKeys;					// 0x007A - 0x007C
 	CVector			vecPosition;			// 0x007C - 0x0088
 	float			fQuaternion[4];			// 0x0088 - 0x008C
@@ -188,10 +372,10 @@ struct CSyncData
 			WORD	wAnimFlags;
 		};
 	};
-	// Size = 68
 };
+static_assert(sizeof(CSyncData) == 68, "Invalid CSyncData size");
 
-struct CUnoccupiedSyncData // size 0x43
+struct CUnoccupiedSyncData
 {
 	WORD			wVehicleID;				// + 0x0000
 	BYTE			bytePassengerSlot;			// + 0x0002
@@ -202,24 +386,26 @@ struct CUnoccupiedSyncData // size 0x43
 	CVector			vecTurnVelocity;		// + 0x0033
 	float			fHealth;					// + 0x003F
 };
+static_assert(sizeof(CUnoccupiedSyncData) == 67, "Invalid CUnoccupiedSyncData size");
 
-struct CSpectatingSyncData		// size 0x12
+struct CSpectatingSyncData
 {
 	WORD			wLeftRightKeysOnSpectating;				// + 0x0000
 	WORD			wUpDownKeysOnSpectating;				// + 0x0002
 	WORD			wKeysOnSpectating;						// + 0x0004
 	CVector			vecPosition;							// + 0x0006
 };
+static_assert(sizeof(CSpectatingSyncData) == 18, "Invalid CSpectatingSyncData size");
 
-struct CTrailerSyncData // size 0x36 = 54
+struct CTrailerSyncData
 {
-	WORD			wTrailerID;				// + 0x0000
-	CVector			vecRoll;				// + 0x0002
-	CVector			vecDirection;			// + 0x000E
-	CVector			vecPosition;			// + 0x001A
-	CVector			vecVelocity;			// + 0x0026
-	DWORD			pad;
+	WORD			wTrailerID;			// + 0x0000
+	CVector			vecPosition;			// + 0x0002
+	float			fQuaternion[4];			// + 0x000E
+	CVector			vecVelocity;			// + 0x001E
+	CVector			vecTurnVelocity;		// + 0x002A
 };
+static_assert(sizeof(CTrailerSyncData) == 54, "Invalid CTrailerSyncData size");
 
 typedef struct CTextdraw
 {
@@ -252,6 +438,7 @@ typedef struct CTextdraw
 	WORD			color1; // 59 - 61
 	WORD			color2; // 61 - 63
 } _CTextdraw;
+static_assert(sizeof(CTextdraw) == 63, "Invalid CTextdraw size");
 
 struct CPlayerTextDraw
 {
@@ -260,16 +447,31 @@ struct CPlayerTextDraw
 	char			*szFontText[MAX_PLAYER_TEXT_DRAWS];
 	bool			bHasText[MAX_PLAYER_TEXT_DRAWS];
 };
+static_assert(sizeof(CPlayerTextDraw) == 2048 + 1024 + 256, "Invalid CPlayerTextDraw size");
 
-struct CPlayerText3DLabels // size 0x9802
+struct C3DText
+{
+	char*			szText;					// + 0x00
+	DWORD			dwColor;				// + 0x04
+	CVector			vecPos;
+	float			fDrawDistance;			// + 0x14
+	bool			bLineOfSight;           // + 0x18
+	int				iWorld;                 // + 0x19
+	WORD			wAttachedToPlayerID;    // + 0x1D
+	WORD			wAttachedToVehicleID;   // + 0x1F
+};
+static_assert(sizeof(C3DText) == 33, "Invalid C3DText size");
+
+struct CPlayerText3DLabels
 {
 	C3DText			TextLabels[ MAX_3DTEXT_PLAYER ];	// + 0x0000
 	BOOL			isCreated[ MAX_3DTEXT_PLAYER ];	// + 0x8400
 	BYTE			unknown9800[MAX_3DTEXT_PLAYER];				// + 0x9400
 	WORD			wOwnerID;
 };
+static_assert(sizeof(CPlayerText3DLabels) == 38914, "Invalid CPlayerText3DLabels size");
 
-struct CAttachedObject // sizeof = 52 - 0x34
+struct CAttachedObject
 {
     int				iModelID;
     int				iBoneiD;
@@ -279,8 +481,9 @@ struct CAttachedObject // sizeof = 52 - 0x34
 	DWORD			dwMaterialColor1;
 	DWORD			dwMaterialColor2;
 };
+static_assert(sizeof(CAttachedObject) == 52, "Invalid CAttachedObject size");
 
-struct CPlayerSpawnInfo // size  46
+struct CPlayerSpawnInfo
 {
 	BYTE			byteTeam;				// 0 - 1
 	int				iSkin;					// 1 - 5
@@ -290,8 +493,9 @@ struct CPlayerSpawnInfo // size  46
 	int				iSpawnWeapons[3];		// 22 - 34
 	int				iSpawnWeaponsAmmo[3];	// 34 - 46
 };
+static_assert(sizeof(CPlayerSpawnInfo) == 46, "Invalid CPlayerSpawnInfo size");
 
-struct CBulletSyncData // sizeof = 40
+struct CBulletSyncData
 {
 	BYTE			byteHitType;
 	WORD			wHitID;
@@ -300,6 +504,7 @@ struct CBulletSyncData // sizeof = 40
 	CVector			vecCenterOfHit;
 	BYTE			byteWeaponID;
 }; 
+static_assert(sizeof(CBulletSyncData) == 40, "Invalid CBulletSyncData size");
 
 struct CPVar
 {
@@ -310,6 +515,7 @@ struct CPVar
     float			fValue;
     char*			szValue;
 };
+static_assert(sizeof(CPVar) == 61, "Invalid CPVar size");
 
 struct CPlayerVar
 {
@@ -317,10 +523,15 @@ struct CPlayerVar
 	BOOL			bIsPVarActive[MAX_PVARS];
     int				iUpperIndex;
 };
+static_assert(sizeof(CPlayerVar) == 48800 + 3200 + 4, "Invalid CPlayerVar size");
 
 struct CPlayer
 {
-	CAimSyncData			aimSyncData;			// 0 - 39
+	CAimSyncData			aimSyncData;			// 0 - 31
+	WORD				wCameraObject;			// 31 - 33
+	WORD				wCameraVehicle;			// 33 - 35
+	WORD				wCameraPlayer;			// 35 - 37
+	WORD				wCameraActor;			// 37 - 39
 	CVehicleSyncData		vehicleSyncData;		// 39 -
 	CPassengerSyncData		passengerSyncData;		//
 	CSyncData				syncData;				// 126 - 194
@@ -353,8 +564,8 @@ struct CPlayer
 	float					fQuaternion[4];		// 10537 - 10553
 	float					fAngle;				// 10553 - 10557
 	CVector					vecVelocity;		// 10557 - 10569
-	WORD					wLRAnalog;			// 10571
-	WORD					wUDAnalog;			// 10569
+	WORD					wLRAnalog;			// 10569
+	WORD					wUDAnalog;			// 10571
 	DWORD					dwKeys;				// 10573 - 10577
 	DWORD					dwOldKeys;			// 10577 - 10581
 	BOOL					bEditObject;		// 10581 - 10585
@@ -365,8 +576,8 @@ struct CPlayer
 	WORD					wPlayerId;			// 10599 - 10601
 	int						iUpdateState;		// 10601 - 10605
 	//DWORD					dwLastSyncTick;		// 10605 - 10609
-	CAttachedObject			attachedObject[MAX_ATTACHED_OBJECTS]; // 10605 - 11125
-	BOOL					attachedObjectSlot[MAX_ATTACHED_OBJECTS]; // 11125 - 11165
+	CAttachedObject			attachedObject[MAX_PLAYER_ATTACHED_OBJECTS]; // 10605 - 11125
+	BOOL					attachedObjectSlot[MAX_PLAYER_ATTACHED_OBJECTS]; // 11125 - 11165
 	BOOL					bHasAimSync;		// 11165 - 11169
 	BOOL					bHasTrailerSync;	// 11169 - 11173
 	BOOL					bHasUnoccupiedSync;	// 11173 - 11177
@@ -412,38 +623,40 @@ struct CPlayer
 	DWORD					dwFirstNPCWritingTime; // 11469 - 11473 
 	PAD(unused, 9);								// 11473 - 11482
 	CPlayerVar*				pPlayerVars;		// 11482 - 11486
-	// Size = 9963
 };
+static_assert(sizeof(CPlayer) == 11486, "Invalid CPlayer size");
 
-struct CPlayerPool // sizeof = 99520
+struct CPlayerPool
 {
-	DWORD			dwVirtualWorld[MAX_PLAYERS];			// 0 - 4000
-	DWORD			dwPlayersCount;							// 4000 - 4004
-	DWORD			dwlastMarkerUpdate;						// 4004 - 4008
-	float			fUpdatePlayerGameTimers;				// 4008 - 4012
-	DWORD			dwScore[MAX_PLAYERS];					// 4012 - 8012
-	DWORD			dwMoney[MAX_PLAYERS];					// 8012 - 12012
-	DWORD			dwDrunkLevel[MAX_PLAYERS];				// 12012 - 16012
-	DWORD			dwLastScoreUpdate[MAX_PLAYERS];			// 16012 - 20012
-	char			szSerial[MAX_PLAYERS][101];				// 20012 - 121012				
-	char			szVersion[MAX_PLAYERS][29];				// 121012 - 150012
-	BOOL			bIsPlayerConnectedEx[MAX_PLAYERS];		// 150012 - 154012
-	CPlayer			*pPlayer[MAX_PLAYERS];					// 154012 - 158012
-	char			szName[MAX_PLAYERS][25];				// 158012 - 183012
-	BOOL			bIsAnAdmin[MAX_PLAYERS];				// 183012 - 187012
-	BOOL			bIsNPC[MAX_PLAYERS];					// 187012 - 191012
-	PAD(pad0, 8000);										// 191012 - 199012
-	DWORD			dwConnectedPlayers;						// 199012 - 199016
-	DWORD			dwPlayerPoolSize;						// 199016 - 199020
+	DWORD					dwVirtualWorld[MAX_PLAYERS];				// 0 - 4000
+	DWORD					dwPlayersCount;								// 4000 - 4004
+	DWORD					dwlastMarkerUpdate;							// 4004 - 4008
+	float					fUpdatePlayerGameTimers;					// 4008 - 4012
+	DWORD					dwScore[MAX_PLAYERS];						// 4012 - 8012
+	DWORD					dwMoney[MAX_PLAYERS];						// 8012 - 12012
+	DWORD					dwDrunkLevel[MAX_PLAYERS];					// 12012 - 16012
+	DWORD					dwLastScoreUpdate[MAX_PLAYERS];				// 16012 - 20012
+	char					szSerial[MAX_PLAYERS][101];					// 20012 - 121012				
+	char					szVersion[MAX_PLAYERS][25];					// 121012 - 146012
+	RemoteSystemStruct		*pRemoteSystem[MAX_PLAYERS];				// 146012 - 150012
+	BOOL					bIsPlayerConnected[MAX_PLAYERS];			// 150012 - 154012
+	CPlayer					*pPlayer[MAX_PLAYERS];						// 154012 - 158012
+	char					szName[MAX_PLAYERS][MAX_PLAYER_NAME + 1];	// 158012 - 183012
+	BOOL					bIsAnAdmin[MAX_PLAYERS];					// 183012 - 187012
+	BOOL					bIsNPC[MAX_PLAYERS];						// 187012 - 191012
+	PAD(pad0, 8000);													// 191012 - 199012
+	DWORD					dwConnectedPlayers;							// 199012 - 199016
+	DWORD					dwPlayerPoolSize;							// 199016 - 199020
+	DWORD					dwUnk;										// 199020 - 199024
 };
+static_assert(sizeof(CPlayerPool) == 199024, "Invalid CPlayerPool size");
 
 /* -------------------------------------------------------- */
 // CVehicle
 /* -------------------------------------------------------- */
 
-class CVehicleSpawn // size 36
+struct CVehicleSpawn
 {
-public:
 	int				iModelID;
     CVector			vecPos;   
     float			fRot;
@@ -452,16 +665,18 @@ public:
     int				iRespawnTime;
     int				iInterior;
 };
+static_assert(sizeof(CVehicleSpawn) == 36, "Invalid CVehicleSpawn size");
 
-struct CVehicleModInfo // sizeof = 26
+struct CVehicleModInfo
 {
 	BYTE			byteModSlots[14];                // + 0x0000
     BYTE			bytePaintJob;                    // + 0x000E
     int				iColor1;                             // + 0x000F
     int				iColor2;                             // + 0x0010
 };
+static_assert(sizeof(CVehicleModInfo) == 23, "Invalid CVehicleModInfo size");
 
-struct CVehicleParams // sizeof = 16
+struct CVehicleParams
 {
 	char engine;
 	char lights;
@@ -480,6 +695,7 @@ struct CVehicleParams // sizeof = 16
 	char window_backleft;
 	char window_backright; // 15 - 16
 };
+static_assert(sizeof(CVehicleParams) == 16, "Invalid CVehicleParams size");
 
 struct CVehicle
 {
@@ -510,8 +726,9 @@ struct CVehicle
     DWORD			vehOccupiedTick;	// 257 - 261
     DWORD			vehRespawnTick;		// 261 - 265
 	BYTE			byteSirenEnabled;	// 265 - 266
-	BYTE			byteNewSirenState;	// 266 - 267
+	BYTE			byteNewSirenState;	// 266 - 267 : passed to OnVehicleSirenStateChange
 };
+static_assert(sizeof(CVehicle) == 267, "Invalid CVehicle size");
 
 struct CVehiclePool
 {
@@ -519,8 +736,9 @@ struct CVehiclePool
 	int				iVirtualWorld[MAX_VEHICLES];		// 212 - 8212
 	BOOL			bVehicleSlotState[MAX_VEHICLES];	// 8212 - 16212
 	CVehicle		*pVehicle[MAX_VEHICLES];			// 16212 - 24212
-	DWORD			dwVehiclePoolSize;					// 24212
+	DWORD			dwVehiclePoolSize;					// 24212 - 24216
 };
+static_assert(sizeof(CVehiclePool) == 24216, "Invalid CVehiclePool size");
 
 /* -------------------------------------------------------- */
 // CPickup
@@ -545,7 +763,7 @@ struct CPickupPool
 // CObject
 /* -------------------------------------------------------- */
 
-struct CObjectMaterial // sizeof = 212
+struct CObjectMaterial
 {
 	BYTE			byteUsed;				// 197 - 198
 	BYTE			byteSlot;				// 198 - 199
@@ -561,8 +779,9 @@ struct CObjectMaterial // sizeof = 212
 	DWORD			dwBackgroundColor;		// 407 - 411
 	BYTE			byteAlignment;			// 411 - 412
 };
+static_assert(sizeof(CObjectMaterial) == 215, "Invalid CObjectMaterial size");
 
-struct CObject // sizeof = 3700
+struct CObject
 {
 	WORD			wObjectID;			// 0 - 2
 	int				iModel;				// 2 - 6
@@ -581,9 +800,10 @@ struct CObject // sizeof = 3700
 	CVector			vecAttachedRotation;// 180 - 192
 	BYTE			byteSyncRot;		// 192 - 193
 	DWORD			dwMaterialCount;	// 193 - 197
-	CObjectMaterial	Material[16];		// 197 - 3637
-	char			*szMaterialText[16];// 3637 - 3653
+	CObjectMaterial	Material[MAX_OBJECT_MATERIAL];		// 197 - 3637
+	char			*szMaterialText[MAX_OBJECT_MATERIAL];// 3637 - 3653
 };
+static_assert(sizeof(CObject) == 3701, "Invalid CObject size");
 
 struct CObjectPool
 {
@@ -665,8 +885,8 @@ struct CSAMPGangZonePool
 
 struct CActorAnim // 140
 {
-	char			szAnimLib[64]; // 0 - 64
-	char			szAnimName[64]; // 64 - 128
+	char			szAnimLib[64 + 1]; // 0 - 64
+	char			szAnimName[64 + 1]; // 64 - 128
 	float			fDelta;		// 128 - 132
 	BYTE			byteLoop;		// 132 - 133
 	BYTE			byteLockX;			// 133 - 134
@@ -674,26 +894,27 @@ struct CActorAnim // 140
 	BYTE			byteFreeze;		// 135 - 136
 	int				iTime;				//  136 - 140
 };
+static_assert(sizeof(CActorAnim) == 142, "Invalid CActorAnim size");
 
 struct CActor
 {
-	BYTE			pad0;				// 0
-	int				iSkinID;			// 1 - 5
-	CVector			vecSpawnPos;	// 5 - 17
-	float			fSpawnAngle;		// 17 - 21
-	DWORD			pad4;				// 21 - 25
-	DWORD			pad5;				// 25 - 29
-	BYTE			byteLoopAnim;		// 29 - 30
+	BYTE			pad0;				
+	int				iSkinID;			
+	CVector			vecSpawnPos;	
+	float			fSpawnAngle;		
+	DWORD			pad4;				
+	DWORD			pad5;				
+	BYTE			byteLoopAnim;		
 	CActorAnim		anim;
-	WORD			wTime;				// 170 - 171
-	float			fHealth;			// 172 - 176
-	DWORD			pad;				// 176 - 180
-	float			fAngle;			// 180 - 184
-	CVector			vecPos;			// 184 - 196
-	DWORD			pad8[3];			// 196 - 208
-	BYTE			byteInvulnerable;	// 208 - 209
-	WORD			wActorID;			// 209 - 211
+	float			fHealth;			
+	DWORD			pad;				
+	float			fAngle;			
+	CVector			vecPos;	
+	BYTE			pad8[12];			
+	BYTE			byteInvulnerable;	
+	WORD			wActorID;			
 };
+//static_assert(sizeof(CActor) == 211, "Invalid CActor size");
 
 struct CActorPool
 {
@@ -755,7 +976,7 @@ struct CNetGame
 	int						iCurrentGameModeIndex;	// 44
 	int						iCurrentGameModeRepeat;	// 48
 	BOOL					bFirstGameModeLoaded;	// 52
-	BOOL					unkasdasd;				// 56
+	void					*pHttpClient;					// 56
 	CScriptTimers			*pScriptTimers;			// 60
 	void					*pRak;					// 64
 	DWORD					dwSomethingTick;
@@ -764,7 +985,7 @@ struct CNetGame
 	BOOL					bLanMode;				// 
 	BOOL					bShowPlayerMarkers;		// 84
 	BYTE					byteShowNameTags;		// 
-	BYTE					bTirePopping;			// 
+	BYTE					byteWorldTimeHour;		// 
 	BYTE					byteAllowWeapons;		// 
 	BYTE					byteStuntBonus;			// 91 - 92
 	BYTE					byteDefaultCameraCollision; // 92 - 93
@@ -772,7 +993,7 @@ struct CNetGame
 	int						iGameState;				// 94 - 98
 	float					fGravity;				// 98 - 102
 	int						iDeathDropMoney;		// 102 - 106
-	BYTE					unklofasz;				// 106 - 107
+	BYTE					byteEnableZoneNames;				// 106 - 107
 	BYTE					byteMode;				// 107 - 108
 	BYTE					bLimitGlobalChatRadius;	// 108 - 109
 	BYTE					bUseCJWalk;				// 109 - 110
@@ -788,183 +1009,6 @@ struct CNetGame
 	double					dElapsedTime;			// size = 8
 #endif
 	int						iSpawnsAvailable;		// 130 - 134
-	CPlayerSpawnInfo		AvailableSpawns[300];	// 129 - 13929
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-struct PlayerID
-{
-	unsigned int binaryAddress;
-	unsigned short port;
-};
-
-const PlayerID UNASSIGNED_PLAYER_ID =
-{
-	0xFFFFFFFF, 0xFFFF
-};
-
-/// All RPC functions have the same parameter list - this structure.
-struct RPCParameters
-{
-	/// The data from the remote system
-	unsigned char *input;
-
-	/// How many bits long \a input is
-	unsigned int numberOfBitsOfData;
-
-	/// Which system called this RPC
-	PlayerID sender;
-
-	/// Which instance of RakPeer (or a derived RakServer or RakClient) got this call
-	void *recipient;
-
-	/// You can return values from RPC calls by writing them to this BitStream.
-	/// This is only sent back if the RPC call originally passed a BitStream to receive the reply.
-	/// If you do so and your send is reliable, it will block until you get a reply or you get disconnected from the system you are sending to, whichever is first.
-	/// If your send is not reliable, it will block for triple the ping time, or until you are disconnected, or you get a reply, whichever is first.
-	RakNet::BitStream *replyToSender;
-};
-
-/// These enumerations are used to describe when packets are delivered.
-enum PacketPriority
-{
-	SYSTEM_PRIORITY,   /// \internal Used by RakNet to send above-high priority messages.
-	HIGH_PRIORITY,   /// High priority messages are send before medium priority messages.
-	MEDIUM_PRIORITY,   /// Medium priority messages are send before low priority messages.
-	LOW_PRIORITY,   /// Low priority messages are only sent when no other messages are waiting.
-	NUMBER_OF_PRIORITIES
-};
-
-/// These enumerations are used to describe how packets are delivered.
-/// \note  Note to self: I write this with 3 bits in the stream.  If I add more remember to change that
-enum PacketReliability
-{
-	UNRELIABLE = 6,   /// Same as regular UDP, except that it will also discard duplicate datagrams.  RakNet adds (6 to 17) + 21 bits of overhead, 16 of which is used to detect duplicate packets and 6 to 17 of which is used for message length.
-	UNRELIABLE_SEQUENCED,  /// Regular UDP with a sequence counter.  Out of order messages will be discarded.  This adds an additional 13 bits on top what is used for UNRELIABLE.
-	RELIABLE,   /// The message is sent reliably, but not necessarily in any order.  Same overhead as UNRELIABLE.
-	RELIABLE_ORDERED,   /// This message is reliable and will arrive in the order you sent it.  Messages will be delayed while waiting for out of order messages.  Same overhead as UNRELIABLE_SEQUENCED.
-	RELIABLE_SEQUENCED /// This message is reliable and will arrive in the sequence you sent it.  Out or order messages will be dropped.  Same overhead as UNRELIABLE_SEQUENCED.
-};
-
-/// \sa NetworkIDGenerator.h
-typedef unsigned char UniqueIDType;
-typedef unsigned short PlayerIndex;
-typedef unsigned char RPCIndex;
-const int MAX_RPC_MAP_SIZE=((RPCIndex)-1)-1;
-const int UNDEFINED_RPC_INDEX=((RPCIndex)-1);
-
-/// First byte of a network message
-typedef unsigned char MessageID;
-
-typedef unsigned int RakNetTime;
-typedef long long RakNetTimeNS;
-
-struct RakNetStatisticsStruct
-{
-	///  Number of Messages in the send Buffer (high, medium, low priority)
-	unsigned messageSendBuffer[ NUMBER_OF_PRIORITIES ];
-	///  Number of messages sent (high, medium, low priority)
-	unsigned messagesSent[ NUMBER_OF_PRIORITIES ];
-	///  Number of data bits used for user messages
-	unsigned messageDataBitsSent[ NUMBER_OF_PRIORITIES ];
-	///  Number of total bits used for user messages, including headers
-	unsigned messageTotalBitsSent[ NUMBER_OF_PRIORITIES ];
-	
-	///  Number of packets sent containing only acknowledgements
-	unsigned packetsContainingOnlyAcknowlegements;
-	///  Number of acknowledgements sent
-	unsigned acknowlegementsSent;
-	///  Number of acknowledgements waiting to be sent
-	unsigned acknowlegementsPending;
-	///  Number of acknowledgements bits sent
-	unsigned acknowlegementBitsSent;
-	
-	///  Number of packets containing only acknowledgements and resends
-	unsigned packetsContainingOnlyAcknowlegementsAndResends;
-	
-	///  Number of messages resent
-	unsigned messageResends;
-	///  Number of bits resent of actual data
-	unsigned messageDataBitsResent;
-	///  Total number of bits resent, including headers
-	unsigned messagesTotalBitsResent;
-	///  Number of messages waiting for ack (// TODO - rename this)
-	unsigned messagesOnResendQueue;
-	
-	///  Number of messages not split for sending
-	unsigned numberOfUnsplitMessages;
-	///  Number of messages split for sending
-	unsigned numberOfSplitMessages;
-	///  Total number of splits done for sending
-	unsigned totalSplits;
-	
-	///  Total packets sent
-	unsigned packetsSent;
-	
-	///  Number of bits added by encryption
-	unsigned encryptionBitsSent;
-	///  total bits sent
-	unsigned totalBitsSent;
-	
-	///  Number of sequenced messages arrived out of order
-	unsigned sequencedMessagesOutOfOrder;
-	///  Number of sequenced messages arrived in order
-	unsigned sequencedMessagesInOrder;
-	
-	///  Number of ordered messages arrived out of order
-	unsigned orderedMessagesOutOfOrder;
-	///  Number of ordered messages arrived in order
-	unsigned orderedMessagesInOrder;
-	
-	///  Packets with a good CRC received
-	unsigned packetsReceived;
-	///  Packets with a bad CRC received
-	unsigned packetsWithBadCRCReceived;
-	///  Bits with a good CRC received
-	unsigned bitsReceived;
-	///  Bits with a bad CRC received
-	unsigned bitsWithBadCRCReceived;
-	///  Number of acknowledgement messages received for packets we are resending
-	unsigned acknowlegementsReceived;
-	///  Number of acknowledgement messages received for packets we are not resending
-	unsigned duplicateAcknowlegementsReceived;
-	///  Number of data messages (anything other than an ack) received that are valid and not duplicate
-	unsigned messagesReceived;
-	///  Number of data messages (anything other than an ack) received that are invalid
-	unsigned invalidMessagesReceived;
-	///  Number of data messages (anything other than an ack) received that are duplicate
-	unsigned duplicateMessagesReceived;
-	///  Number of messages waiting for reassembly
-	unsigned messagesWaitingForReassembly;
-	///  Number of messages in reliability output queue
-	unsigned internalOutputQueueSize;
-	///  Current bits per second
-	double bitsPerSecond;
-	///  connection start time
-	RakNetTime connectionStartTime;
-};
-
-/// This represents a user message from another system.
-struct Packet
-{
-	/// Server only - this is the index into the player array that this playerId maps to
-	PlayerIndex playerIndex; // 0 - 2
-
-	/// The system that send this packet.
-	PlayerID playerId; // 2  - 8
-
-	/// The length of the data in bytes
-	/// \deprecated You should use bitSize.
-	unsigned int length; // 8 - 12
-
-	/// The length of the data in bits
-	unsigned int bitSize; // 12 - 16
-
-	/// The data from the sender
-	unsigned char* data; // 16 - 20
-
-	/// @internal
-	/// Indicates whether to delete the data, or to simply delete the packet.
-	bool deleteData;
+	CPlayerSpawnInfo		AvailableSpawns[319];	// 129 - 14803
 };
 #endif

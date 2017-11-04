@@ -57,7 +57,7 @@
 // ------------
 
 #define PROJECT_NAME		"YSF"
-#define PROJECT_VERSION		"R18"
+#define PROJECT_VERSION		"R19-2"
 
 // ------------
 // OS SPECIFICS
@@ -66,6 +66,8 @@
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#define SLEEP(x) { Sleep(x); }
+	#define popen _popen
+	#define pclose  _pclose
 	#define OS_NAME "Windows"
 
 	#include <windows.h>
@@ -140,40 +142,41 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-
-// SAMP GDK
-#include <sampgdk/sampgdk.h>
-using sampgdk::logprintf;
+#include <queue>
+#include <thread>
+#include <mutex>
 	
 // Subhook
 #include <subhook/subhook.h>
 
 // YSF
-#include "Addresses.h"
+#include "CAddresses.h"
 #include "amxfunctions.h"
+#include "CScriptParams.h"
 #include "CCallbackManager.h"
 #include "CGangZonePool.h"
 #include "CModelSizes.h"
 #include "CPickupPool.h"
 #include "CPlayerData.h"
 #include "CVector.h"
-#include "Functions.h"
+#include "CServer.h"
+#include "CFunctions.h"
 #include "Hooks.h"
 #include "RPCs.h"
-#include "Scripting.h"
-//#include "Structs.h"
+#include "Natives.h"
+#include "Structs.h"
 #include "Utils.h"
 
 // ---------
 // EXTERNALS
 // ---------
-
+extern void *pAMXFunctions;
 extern void **ppPluginData;
 	
-extern CPlayerData *pPlayerData[MAX_PLAYERS];
-
 extern CNetGame *pNetGame;
 extern void *pConsole;
 extern void *pRakServer;
+
+extern CPlayerData *pPlayerData[MAX_PLAYERS];
 
 #endif

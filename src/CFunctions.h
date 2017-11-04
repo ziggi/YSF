@@ -33,7 +33,8 @@
 #ifndef YSF_FUNCTIONS_H
 #define YSF_FUNCTIONS_H
 
-#include <sampgdk/sampgdk.h>
+#include <sdk/amx/amx.h>
+#include <raknet/NetworkTypes.h>
 
 #define DEFINE_FUNCTION_POINTER(name) \
 	static name ## _t		pfn__ ## name
@@ -41,16 +42,21 @@
 #define POINT_TO_MEMBER(name, address) \
 	pfn__ ## name = (name ## _t)(address) 
 
+#define INIT_FPTR(name) \
+	pfn__ ## name = (name ## _t)(CAddress::FUNC_ ## name) 
+
 #ifdef _WIN32
 #include <winsock2.h>
 
 #define STDCALL __stdcall
 #define THISCALL __thiscall
+#define FASTCALL __fastcall
 #else
 typedef int SOCKET;
 
 #define STDCALL
 #define THISCALL
+#define FASTCALL
 #define CDECL
 #endif
 
@@ -68,14 +74,16 @@ typedef ConsoleVariable_s* (THISCALL *CConsole__FindVariable_t)(void *pConsole, 
 typedef void (THISCALL *CConsole__SendRules_t)(void *pConsole, SOCKET s, char* data, const sockaddr_in* to, int tolen);
 typedef void (THISCALL *CConsole__Execute_t)(void *pConsole, char* pExecLine);
 
-typedef bool (THISCALL *CFilterscripts__LoadFilterscript_t)(void *pFilterscriptPool, char *szName);
-typedef bool (THISCALL *CFilterscripts__UnLoadFilterscript_t)(void *pFilterscriptPool, char *szName);
+typedef bool (THISCALL *CFilterscripts__LoadFilterscript_t)(void *pFilterscriptPool, const char *szName);
+typedef bool (THISCALL *CFilterscripts__UnLoadFilterscript_t)(void *pFilterscriptPool, const char *szName);
 
 typedef void (THISCALL *CPlayer__SpawnForWorld_t)(void *pPlayer);
 typedef DWORD (THISCALL *CPlayerPool__HandleVehicleRespawn_t)(CPlayerPool *pPlayerPool, WORD wVehicleID);
 
 typedef int (THISCALL *Packet_WeaponsUpdate_t)(void *pNetGame, Packet *p);
 typedef int (THISCALL *Packet_StatsUpdate_t)(void *pNetGame, Packet *p);
+
+typedef void(*logprintf_t)(char* format, ...);
 typedef char* (CDECL *format_amxstring_t)(AMX *amx, cell *params, int parm, int &len);
 
 typedef bool (THISCALL *RakNet__Start_t)(void* ppRakServer, unsigned short AllowedPlayers, unsigned int depreciated, int threadSleepTimer, unsigned short port, const char *forceHostAddress);
@@ -122,10 +130,10 @@ public:
 	static void		SendRules(SOCKET s, char* data, const sockaddr_in* to, int tolen);
 	static void		Execute(char* pExecLine);
 
-	static bool		LoadFilterscript(char *szName);
-	static bool		UnLoadFilterscript(char *szName);
+	static bool		LoadFilterscript(const char *szName);
+	static bool		UnLoadFilterscript(const char *szName);
 	
-	static void		SpawnPlayer_(int iPlayerId);
+	static void		SpawnPlayer(int iPlayerId);
 
 	static void		Packet_WeaponsUpdate(Packet *p);
 	static void		Packet_StatsUpdate(Packet *p);
@@ -194,5 +202,6 @@ public:
 	DEFINE_FUNCTION_POINTER(RakNet__ClearBanList);					
 };
 
+extern logprintf_t logprintf;
 
 #endif

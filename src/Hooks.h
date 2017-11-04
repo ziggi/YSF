@@ -33,21 +33,12 @@
 #ifndef YSF_HOOKS_H
 #define YSF_HOOKS_H
 
-#include <sampgdk/sampgdk.h>
-
-extern AMX_NATIVE 
-	pDestroyObject, 
-	pDestroyPlayerObject, 
-	pTogglePlayerControllable, 
-	pSetPlayerWorldBounds, 
-	pSetPlayerTeam, 
-	pSetPlayerSkin, 
-	pSetPlayerFightingStyle, 
-	pSetPlayerName, 
-	pSetVehicleToRespawn, 
-	pChangeVehicleColor, 
-	pDestroyVehicle, 
-	pAttachObjectToPlayer;
+#define SUBHOOK_REMOVE(hookname) \
+	if(hookname) \
+	{ \
+		subhook_remove(hookname); \
+		subhook_free(hookname); \
+	} \
 
 extern char gRecordingDataPath[MAX_PATH];
 

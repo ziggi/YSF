@@ -61,27 +61,25 @@
 	#define RAKNET_GET_LOCAL_IP_OFFSET					53
 	#define RAKNET_GET_INDEX_FROM_PLAYERID_OFFSET		58
 	#define RAKNET_GET_PLAYERID_FROM_INDEX_OFFSET		59
-	#define RAKNET_ADD_BAN_OFFSET						60
-	#define RAKNET_REMOVE_BAN_OFFSET					61
-	#define RAKNET_CLEAR_BAN_OFFSET						62
-	#define RAKNET_SET_TIMEOUT_OFFSET					00
+	#define RAKNET_ADD_BAN_OFFSET						61
+	#define RAKNET_REMOVE_BAN_OFFSET					62
+	#define RAKNET_CLEAR_BAN_OFFSET						63
+	#define RAKNET_SET_TIMEOUT_OFFSET					65
 #endif
 
 #include <vector>
 
-enum eSAMPVersion
+enum class SAMPVersion
 {
-	SAMP_VERSION_UNKNOWN,
-	SAMP_VERSION_037,
-	SAMP_VERSION_037_R2,
-
-	SAMP_VERSION_SKIPPED,
+	VERSION_UNKNOWN,
+	VERSION_037,
+	VERSION_037_R2,
 };
 
 class CAddress
 {
 public:
-	static void	Initialize(eSAMPVersion sampVersion);
+	static void	Initialize(SAMPVersion version);
 
 	static DWORD			FUNC_Logprintf_03Z;
 	static DWORD			FUNC_Logprintf_03ZR2_2;
@@ -91,13 +89,11 @@ public:
 	static DWORD			FUNC_Logprintf_037_R2;
 	static DWORD			FUNC_Logprintf_037_R2_1;
 
-	// Pointers
-	static DWORD			VAR_ppNetGame;
-	static DWORD			VAR_ppConsole;
-	static DWORD			VAR_ppRakServer;
-
 	// Variables
 	static DWORD			VAR_pRestartWaitTime;
+	static DWORD			VAR_pPosSyncBounds[4];
+	static DWORD			VAR_wRCONUser;
+	static DWORD			ARRAY_ConsoleCommands;
 
 	// Functions
 	static DWORD			FUNC_CConsole__AddStringVariable;
@@ -117,10 +113,8 @@ public:
 	static DWORD			FUNC_CFilterscripts__LoadFilterscript;
 	static DWORD			FUNC_CFilterscripts__UnLoadFilterscript;
 	static DWORD			FUNC_ContainsInvalidChars;
-	static DWORD			FUNC_GetPacketID;
 
 	static DWORD			FUNC_CPlayer__SpawnForWorld;
-
 	static DWORD			FUNC_CVehicle__Respawn;
 	static DWORD			FUNC_CPlayerPool__HandleVehicleRespawn;
 
@@ -135,6 +129,13 @@ public:
 
 	static DWORD			ADDR_RecordingDirectory;
 
+	// Callback hooks
+	static DWORD			FUNC_CGameMode__OnPlayerConnect;
+	static DWORD			FUNC_CGameMode__OnPlayerDisconnect;
+	static DWORD			FUNC_CGameMode__OnPlayerSpawn;
+	static DWORD			FUNC_CGameMode__OnPlayerStreamIn;
+	static DWORD			FUNC_CGameMode__OnPlayerStreamOut;
+	static DWORD			FUNC_CGameMode__OnDialogResponse;
 };
 
 #endif

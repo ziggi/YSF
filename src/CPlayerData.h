@@ -33,13 +33,40 @@
 #ifndef YSF_CPLAYERDATA_H
 #define YSF_CPLAYERDATA_H
 
-//#include "CServer.h"
 #include "Structs.h"
 #include <bitset>
-#include <sampgdk/sampgdk.h>
+#include <chrono>
+#include <memory>
 
 #include "CGangZonePool.h"
 #include "CPickupPool.h"
+
+using default_clock = std::chrono::steady_clock;
+
+class CPlayerObjectAttachAddon
+{
+public:
+/*
+	CPlayerObjectAttachAddon::CPlayerObjectAttachAddon() :
+		: wObjectID(INVALID_OBJECT_ID), wAttachPlayerID(INVALID_PLAYER_ID)
+	{
+
+	}
+	CPlayerObjectAttachAddon::CPlayerObjectAttachAddon(WORD &objectid, WORD &attachplayer, CVector &vecoffset, CVector &vecrot) 
+		: wObjectID(objectid), wAttachPlayerID(attachplayer), vecOffset(vecoffset), vecRot(vecrot)
+	{
+		
+	}
+*/
+	WORD wObjectID = INVALID_OBJECT_ID;
+	WORD wAttachPlayerID = INVALID_PLAYER_ID;
+	CVector vecOffset;
+	CVector vecRot;
+	default_clock::time_point creation_timepoint;
+	bool bCreated = false;
+	bool bAttached = false;
+	//std::unordered_map<BYTE, std::string> strMaterialText;
+};
 
 class CPlayerData
 {
@@ -55,9 +82,9 @@ public:
 	int GetPlayerSkinForPlayer(WORD skinplayerid);
 	inline void ResetPlayerSkin(WORD playerid) { m_iSkins[playerid] = -1; }
 
-	bool SetPlayerNameForPlayer(WORD nameplayerid, char *name);
-	char *GetPlayerNameForPlayer(WORD nameplayerid);
-	inline void ResetPlayerName(WORD playerid) { m_szNames[playerid][0] = NULL; }
+	bool SetPlayerNameForPlayer(WORD nameplayerid, const char *name);
+	const char *GetPlayerNameForPlayer(WORD nameplayerid);
+	inline void ResetPlayerName(WORD playerid) { m_PlayerNames.erase(playerid); }
 
 	bool SetPlayerFightingStyleForPlayer(WORD styleplayerid, int style);
 	int GetPlayerFightingStyleForPlayer(WORD styleplayerid);
@@ -66,35 +93,49 @@ public:
 	void ResetPlayerMarkerForPlayer(WORD resetplayerid);
 	
 	WORD GetGangZoneIDFromClientSide(WORD zoneid, bool bPlayer = false);
-	bool DestroyObject_(WORD objectid);
+	bool DestroyObject(WORD objectid);
 
 	void Process(void);
 
-	struct sObj
-	{
-		WORD wObjectID;
-		WORD wAttachPlayerID;
-		CVector vecOffset;
-		CVector vecRot;
-	} stObj[MAX_OBJECTS];
-
 	WORD wPlayerID;
-	
+	int iNPCProcessID;
+	WORD wSurfingInfo;
+	WORD wDialogID;
+
+	// Exclusive RPC broadcast
+	bool bBroadcastTo;
+
+	// Variables to store disabled keys
+	WORD wDisabledKeys;
+	WORD wDisabledKeysUD;
+	WORD wDisabledKeysLR;
+
+	// Per-player things
 	float fGravity;
 	BYTE byteWeather;
 	float fBounds[4];
-
-	BYTE byteTeam;
 	
-	// Special shits for store sync data
-	WORD wDisabledKeys;
-
-		// Per-player pos
-	bool bCustomPos[MAX_PLAYERS];
-	bool bCustomQuat[MAX_PLAYERS];
-	CVector *vecCustomPos[MAX_PLAYERS];
+	// Per-player pos
+	std::bitset<MAX_PLAYERS> bCustomQuat;
+	std::unordered_map <WORD, std::unique_ptr<CVector>> customPos; 
 	float fCustomQuat[MAX_PLAYERS][4];
 
+	std::shared_ptr<CPlayerObjectAttachAddon> GetObjectAddon(WORD objectid);
+	std::shared_ptr<CPlayerObjectAttachAddon> const FindObjectAddon(WORD objectid);
+
+	void DeleteObjectAddon(WORD objectid);
+
+	// Containers to store attached offset of AttachPlayerObjectToPlayer
+	std::unordered_map<WORD, std::shared_ptr<CPlayerObjectAttachAddon>> m_PlayerObjectsAddon;
+	std::set<WORD> m_PlayerObjectsAttachQueue;
+
+	// Fix for GetPlayerObjectMaterial/MaterialText - i keep this outside from containers above
+	std::multimap<WORD, std::pair<BYTE, std::string>> m_PlayerObjectMaterialText;
+
+	// Other
+	std::string strNameInQuery;
+
+	// Gangzones
 	CGangZone *pPlayerZone[MAX_GANG_ZONES];
 
 	// [clientsideid] = serversideid
@@ -117,22 +158,14 @@ public:
 	std::bitset<MAX_PICKUPS> bPlayerPickup;
 #endif
 	DWORD dwFakePingValue;
-	DWORD dwLastUpdateTick;
-	DWORD dwCreateAttachedObj;
-	WORD dwObjectID;
-
-	DWORD dwFPS;
-	DWORD dwLastDrunkLevel;
-	WORD wSurfingInfo;
-	WORD wDialogID;
-
+	default_clock::time_point LastUpdateTick;
+	
 	bool bObjectsRemoved : 1;
 	bool bWidescreen : 1;
 	bool bUpdateScoresPingsDisabled : 1;
 	bool bFakePingToggle : 1;
 	bool bAFKState : 1;
 	bool bEverUpdated : 1; 
-	bool bHidden : 1;
 	bool bControllable : 1;
 	bool bAttachedObjectCreated : 1;
 
@@ -140,9 +173,7 @@ private:
 	int m_iTeams[MAX_PLAYERS];
 	int m_iSkins[MAX_PLAYERS];
 	int m_iFightingStyles[MAX_PLAYERS];
-	char m_szNames[MAX_PLAYERS][MAX_PLAYER_NAME];
+	std::unordered_map<WORD, std::string> m_PlayerNames;
 };
 
-void RebuildSyncData(RakNet::BitStream *bsSync, WORD toplayerid);
-void RebuildRPCData(BYTE uniqueID, RakNet::BitStream *bsSync, WORD playerid);
 #endif
